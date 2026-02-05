@@ -18,12 +18,10 @@ export function queryBuilder (params: QueryParams) {
     .map(([field, value]) => {
       // Sanitize field names to only allow [a-z_] characters
       const sanitizedField = field.replace(/[^a-z_]/g, '')
-      if (!sanitizedField) {
-        // Skip invalid field names entirely
-        return null
+      if (sanitizedField) {
+        filteredParams[sanitizedField] = value
+        return sanitizedField + '=?'
       }
-      filteredParams[sanitizedField] = value
-      return sanitizedField + '=?'
     })
     .filter(Boolean) // Remove null entries
 
@@ -97,7 +95,8 @@ export class MapperClass {
     let row = this.db
       .prepare(`SELECT *
                 FROM ${this.table}
-                WHERE ${query.selectQuery} LIMIT 1`)
+                WHERE ${query.selectQuery}
+                LIMIT 1`)
       .get(...query.binds)
 
     if (!row) {
